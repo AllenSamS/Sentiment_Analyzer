@@ -4,8 +4,6 @@ import re
 import nltk
 import pandas as pd
 from nltk.corpus import stopwords
-from wordcloud import WordCloud
-import matplotlib.pyplot as plt
 
 nltk.download("stopwords")
 stop_words = set(stopwords.words("english"))
@@ -20,10 +18,12 @@ st.set_page_config(
 )
 
 # ======================================================
-# CUSTOM CSS
+# CUSTOM CSS (FIXED VISIBILITY + MODERN UI)
 # ======================================================
 st.markdown("""
 <style>
+
+/* Global background */
 .stApp {
     background: linear-gradient(135deg, #0f2027, #203a43, #2c5364);
     font-family: "Segoe UI", sans-serif;
@@ -34,21 +34,35 @@ section[data-testid="stSidebar"] {
     background: linear-gradient(180deg, #141e30, #243b55);
 }
 section[data-testid="stSidebar"] * {
-    color: white !important;
+    color: #ffffff !important;
+    font-size: 16px;
 }
 
-/* Titles */
+/* General text */
+p, li, span {
+    color: #e5e7eb !important;
+    font-size: 16px;
+}
+
+/* Headings */
+h1, h2, h3, h4 {
+    color: #ffffff !important;
+    font-weight: 800;
+}
+
+/* Custom titles */
 .main-title {
     font-size: 46px;
     font-weight: 800;
     text-align: center;
-    color: white;
+    color: #ffffff;
     margin-bottom: 10px;
 }
+
 .subtitle {
     text-align: center;
     font-size: 18px;
-    color: #e5e7eb;
+    color: #d1d5db;
     margin-bottom: 30px;
 }
 
@@ -75,7 +89,7 @@ section[data-testid="stSidebar"] * {
     transform: scale(1.05);
 }
 
-/* Text area */
+/* Text input */
 textarea {
     border-radius: 14px !important;
     border: 2px solid #93c5fd !important;
@@ -94,6 +108,7 @@ textarea {
     color: #065f46;
     font-weight: 600;
 }
+
 .info-box {
     background: #eff6ff;
     border-left: 8px solid #2563eb;
@@ -103,6 +118,7 @@ textarea {
     color: #1e3a8a;
 }
 
+/* Footer */
 .footer {
     text-align: center;
     color: #d1d5db;
@@ -119,7 +135,7 @@ model = joblib.load("lr_model.pkl")
 vectorizer = joblib.load("tfidf_vectorizer.pkl")
 
 # ======================================================
-# SESSION STORAGE
+# SESSION STATE
 # ======================================================
 if "history" not in st.session_state:
     st.session_state.history = []
@@ -162,7 +178,7 @@ def emotion_label(conf):
 st.sidebar.title("📌 Navigation")
 page = st.sidebar.radio(
     "Choose a section",
-    ["🎯 Sentiment Analyzer", "📊 Dataset Insights", "📜 Prediction History", "ℹ️ About Project"]
+    ["🎯 Sentiment Analyzer", "📜 Prediction History", "ℹ️ About Project"]
 )
 
 # ======================================================
@@ -172,7 +188,6 @@ if page == "🎯 Sentiment Analyzer":
 
     st.markdown("<div class='main-title'>🎬 Movie Review Sentiment Analyzer</div>", unsafe_allow_html=True)
     st.markdown("<div class='subtitle'>Analyze emotions behind movie reviews using Machine Learning</div>", unsafe_allow_html=True)
-
 
     review = st.text_area("✍️ Enter your movie review here:")
 
@@ -193,42 +208,16 @@ if page == "🎯 Sentiment Analyzer":
             st.progress(confidence / 100)
 
             st.markdown(f"### 🎭 Emotion Level: {emotion_label(confidence)}")
+
             keywords = explain_prediction(review)
             st.markdown("### 🔍 Key Influencing Words")
             st.write(", ".join(keywords))
-            # Save history
+
             st.session_state.history.append({
                 "Review": review[:80] + "...",
                 "Sentiment": sentiment,
                 "Confidence": round(confidence, 2)
             })
-
-    st.markdown("</div>", unsafe_allow_html=True)
-
-# ======================================================
-# DATASET INSIGHTS
-# ======================================================
-elif page == "📊 Dataset Insights":
-
-    st.markdown("<div class='main-title'>📊 Dataset Insights</div>", unsafe_allow_html=True)
-
-    df = pd.read_csv("IMDB Dataset.csv")
-
-    st.metric("Total Reviews", len(df))
-    st.metric("Positive Reviews", sum(df["sentiment"] == "positive"))
-    st.metric("Negative Reviews", sum(df["sentiment"] == "negative"))
-
-    st.bar_chart(df["sentiment"].value_counts())
-
-    st.markdown("### ☁️ Word Cloud")
-
-    text = " ".join(df["review"].sample(2000))
-    wc = WordCloud(width=900, height=400, background_color="white").generate(text)
-
-    fig, ax = plt.subplots(figsize=(10, 5))
-    ax.imshow(wc)
-    ax.axis("off")
-    st.pyplot(fig)
 
 # ======================================================
 # HISTORY
@@ -242,12 +231,7 @@ elif page == "📜 Prediction History":
         st.dataframe(df_hist)
 
         csv = df_hist.to_csv(index=False).encode("utf-8")
-        st.download_button(
-            "⬇️ Download History (CSV)",
-            csv,
-            file_name="sentiment_history.csv",
-            mime="text/csv"
-        )
+        st.download_button("⬇️ Download History (CSV)", csv, "sentiment_history.csv")
     else:
         st.info("No predictions yet.")
 
@@ -281,8 +265,8 @@ Classify movie reviews into **Positive** or **Negative** sentiments using Machin
 ✔ Emotion intensity  
 ✔ Keyword explanation  
 ✔ Prediction history  
-✔ CSV download  
-✔ Interactive dashboard  
+✔ CSV export  
+✔ Interactive UI  
 
 This project demonstrates how **NLP + ML** can be applied to real-world text analytics.
 """)
